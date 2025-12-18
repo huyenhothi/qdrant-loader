@@ -39,14 +39,14 @@ jobs:
           cd packages/qdrant-loader-core
           python -m pytest tests/ --cov=src --cov-report=xml:../../coverage-core.xml --cov-report=html:../../htmlcov-core -v
 
-      - name: Upload core coverage artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-core-${{ github.run_id }}
-          path: |
-            htmlcov-core
-            coverage-core.xml
-          retention-days: 30
+      # - name: Upload core coverage artifact
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: coverage-core-${{ github.run_id }}
+      #     path: |
+      #       htmlcov-core
+      #       coverage-core.xml
+      #     retention-days: 30
   test-loader:
     name: Test QDrant Loader
     runs-on: ubuntu-latest
@@ -76,16 +76,16 @@ jobs:
       - name: Run loader tests and generate coverage reports
         run: |
           cd packages/qdrant-loader
-          python -m pytest tests/ --cov=src --cov-report=xml:../../coverage-loader.xml --cov-report=html:../../htmlcov-loader -v
+          python -m pytest tests/ --cov=src -v
 
-      - name: Upload loader coverage artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-loader-${{ github.run_id }}
-          path: |
-            htmlcov-loader
-            coverage-loader.xml
-          retention-days: 30
+      # - name: Upload loader coverage artifact
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: coverage-loader-${{ github.run_id }}
+      #     path: |
+      #       htmlcov-loader
+      #       coverage-loader.xml
+      #     retention-days: 30
 
   test-mcp-server:
     name: Test MCP Server
@@ -138,16 +138,16 @@ jobs:
       - name: Run MCP server tests and generate coverage reports
         run: |
           cd packages/qdrant-loader-mcp-server
-          python -m pytest tests/ --cov=src --cov-report=xml:../../coverage-mcp.xml --cov-report=html:../../htmlcov-mcp -v
+          python -m pytest tests/ --cov=src -v
 
-      - name: Upload MCP server coverage artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-mcp-${{ github.run_id }}
-          path: |
-            htmlcov-mcp
-            coverage-mcp.xml
-          retention-days: 30
+      # - name: Upload MCP server coverage artifact
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: coverage-mcp-${{ github.run_id }}
+      #     path: |
+      #       htmlcov-mcp
+      #       coverage-mcp.xml
+      #     retention-days: 30
 
   test-website:
     name: Test Website Build System
@@ -180,15 +180,15 @@ jobs:
           export PYTHONPATH="${PYTHONPATH}:$(pwd)/website"
           python -m pytest tests/ --cov=website --cov-report=xml:coverage-website.xml --cov-report=html:htmlcov-website --cov-report=term-missing -v
 
-      - name: Upload website test coverage artifact
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: coverage-website-${{ github.run_id }}
-          path: |
-            htmlcov-website
-            coverage-website.xml
-          retention-days: 30
+      # - name: Upload website test coverage artifact
+      #   uses: actions/upload-artifact@v4
+      #   if: always()
+      #   with:
+      #     name: coverage-website-${{ github.run_id }}
+      #     path: |
+      #       htmlcov-website
+      #       coverage-website.xml
+      #     retention-days: 30
 
   test-summary:
     name: Test Summary
@@ -225,9 +225,9 @@ jobs:
           echo "MCP Server Tests: ${{ needs.test-mcp-server.result }}" >> test-results/summary.txt
           echo "Website Tests: ${{ needs.test-website.result }}" >> test-results/summary.txt
 
-      - name: Upload test status artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-status-${{ github.run_id }}
-          path: test-results/
-          retention-days: 30
+      # - name: Upload test status artifact
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: test-status-${{ github.run_id }}
+      #     path: test-results/
+      #     retention-days: 30
