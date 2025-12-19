@@ -77,8 +77,11 @@ jobs:
       - name: Run loader tests and generate coverage reports
         run: |
           cd packages/qdrant-loader
-          python -m pytest tests/unit -n 2 --cov=src -v
-          python -m pytest tests/integration --cov=src -v
+          python -m pytest tests/unit -n 2 --cov=src --cov-report= -v
+          python -m pytest tests/integration --cov=src --cov-append --cov-report= -v
+          coverage xml -o ../../coverage-loader.xml
+          coverage report
+          coverage html -d ../../htmlcov-loader
 
       # - name: Upload loader coverage artifact
       #   uses: actions/upload-artifact@v4
@@ -140,8 +143,11 @@ jobs:
       - name: Run MCP server tests and generate coverage reports
         run: |
           cd packages/qdrant-loader-mcp-server
-          python -m pytest -n 2 tests/unit --cov=src -v
-          python -m pytest tests/integration --cov=src -v
+          python -m pytest tests/unit -n 2 --cov=src --cov-report= -v
+          python -m pytest tests/integration --cov=src --cov-append --cov-report= -v
+          coverage xml -o ../../coverage-mcp.xml
+          coverage report
+          coverage html -d ../../htmlcov-mcp
 
       # - name: Upload MCP server coverage artifact
       #   uses: actions/upload-artifact@v4
