@@ -8,7 +8,6 @@ _original_excepthook = threading.excepthook
 
 def pytest_configure():
     def patched_start(self, *args, **kwargs):
-        # Gắn test id vào thread tại thời điểm spawn
         self._pytest_nodeid = getattr(
             threading.current_thread(), "_pytest_nodeid", None
         )
@@ -37,6 +36,5 @@ def pytest_unconfigure():
 
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_call(item):
-    # Gắn nodeid vào main thread
     threading.current_thread()._pytest_nodeid = item.nodeid
     yield
