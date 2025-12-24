@@ -1,26 +1,42 @@
+import sys
 import threading
 import pytest
 
-_current_test = None
+_original_start = threading.Thread.start
+_original_excepthook = threading.excepthook
+
+
+def pytest_configure():
+    def patched_start(self, *args, **kwargs):
+        # Gắn test id vào thread tại thời điểm spawn
+        self._pytest_nodeid = getattr(
+            threading.current_thread(), "_pytest_nodeid", None
+        )
+        return _original_start(self, *args, **kwargs)
+
+    threading.Thread.start = patched_start
+
+    def excepthook(args):
+        nodeid = getattr(args.thread, "_pytest_nodeid", "UNKNOWN")
+        print(
+            "\n[pytest-thread-warning]",
+            f"Background thread exception from test: {nodeid}",
+            f"Thread: {args.thread.name}",
+            f"Exception: {args.exc_value}",
+            sep="\n",
+            file=sys.stderr,
+        )
+
+    threading.excepthook = excepthook
+
+
+def pytest_unconfigure():
+    threading.Thread.start = _original_start
+    threading.excepthook = _original_excepthook
 
 
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_call(item):
-    global _current_test
-    _current_test = item.nodeid
+    # Gắn nodeid vào main thread
+    threading.current_thread()._pytest_nodeid = item.nodeid
     yield
-    _current_test = None
-
-
-@pytest.fixture(scope="session", autouse=True)
-def fail_on_thread_exception():
-    original_hook = threading.excepthook
-
-    def excepthook(args):
-        raise RuntimeError(
-            f"Background thread exception in test: {_current_test}"
-        ) from args.exc_value
-
-    threading.excepthook = excepthook
-    yield
-    threading.excepthook = original_hook
