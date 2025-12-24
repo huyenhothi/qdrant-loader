@@ -134,6 +134,8 @@ class TestFileConverterBasics:
                 file_converter_with_llm, "_create_llm_client"
             ) as mock_create_client,
         ):
+            import threading
+            print(threading.enumerate())
             mock_instance = MagicMock()
             mock_markitdown_class.return_value = mock_instance
             mock_llm_client = MagicMock()
