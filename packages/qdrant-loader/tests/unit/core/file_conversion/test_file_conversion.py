@@ -449,9 +449,9 @@ class TestFileConverter:
                         result == "# Converted Content\n\nThis is the converted text."
                     )
                     mock_instance.convert.assert_called_once_with(tmp_path)
-                    
+                  
                     mock_thread.assert_called()
-                    assert mock_thread.return_value.start.called
+                    mock_thread.return_value.start.assert_called()
                 finally:
                     try:
                         os.unlink(tmp_path)

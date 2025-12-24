@@ -103,9 +103,7 @@ class TimeoutHandler:
 
     def _timeout_thread(self):
         """Thread-based timeout for Windows."""
-        import logging
         import time
-        logging.info("Timeout thread STARTED")
 
         time.sleep(self.timeout_seconds)
         self._timeout_handler()
