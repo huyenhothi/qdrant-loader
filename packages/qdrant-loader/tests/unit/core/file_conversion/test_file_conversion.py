@@ -421,7 +421,13 @@ class TestFileConverter:
 
     def test_convert_file_success(self):
         """Test successful file conversion."""
-        with patch("markitdown.MarkItDown") as mock_markitdown_class:
+        with patch(
+            "threading.Thread"
+        ) as mock_thread, patch(
+            "markitdown.MarkItDown"
+        ) as mock_markitdown_class:
+            # Mock thread
+            mock_thread.return_value.start = Mock()
             # Setup mock
             mock_instance = Mock()
             mock_markitdown_class.return_value = mock_instance
@@ -443,6 +449,9 @@ class TestFileConverter:
                         result == "# Converted Content\n\nThis is the converted text."
                     )
                     mock_instance.convert.assert_called_once_with(tmp_path)
+                    
+                    mock_thread.assert_called()
+                    assert mock_thread.return_value.start.called
                 finally:
                     try:
                         os.unlink(tmp_path)
