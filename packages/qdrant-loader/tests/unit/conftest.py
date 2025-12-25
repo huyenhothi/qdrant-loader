@@ -1,5 +1,6 @@
 import sys
 import threading
+
 import pytest
 
 _original_start = threading.Thread.start
