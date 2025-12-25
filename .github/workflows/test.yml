@@ -85,7 +85,7 @@ jobs:
       - name: Run loader unit tests
         run: |
           cd packages/qdrant-loader
-          python -m pytest tests/unit -n 2 --cov=src --cov-report= -v
+          python -m pytest tests/unit -n 2 --cov=src --cov-report= --durations=10 -v
 
       - name: Run loader integration tests
         if: |
@@ -177,7 +177,7 @@ jobs:
           (github.ref_name == 'develop' || github.ref_name == 'main'))
         run: |
           cd packages/qdrant-loader-mcp-server
-          python -m pytest tests/integration --cov=src --cov-append --cov-report= -v
+          python -m pytest tests/integration --cov=src --cov-append --cov-report= --cov-report=term-missing -v
 
       - name: Generate coverage reports
         if: github.event_name == 'push' && github.ref_name == 'main'
