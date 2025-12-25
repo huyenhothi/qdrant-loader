@@ -177,7 +177,7 @@ jobs:
           (github.ref_name == 'develop' || github.ref_name == 'main'))
         run: |
           cd packages/qdrant-loader-mcp-server
-          python -m pytest tests/integration --cov=src --cov-append --cov-report= -v
+          python -m pytest tests/integration --cov=src --cov-append --cov-report= --cov-report=term-missing -v
 
       - name: Generate coverage reports
         if: github.event_name == 'push' && github.ref_name == 'main'
