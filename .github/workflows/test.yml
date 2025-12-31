@@ -27,6 +27,11 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Debug python outputs
+        run: |
+          echo "python-version = '${{ steps.setup-python.outputs.python-version }}'"
+          echo "python-version-major-minor = '${{ steps.setup-python.outputs.python-version-major-minor }}'"
+
       - name: Restore pip dependency cache
         uses: actions/cache/restore@v4
         id: pip-cache-core
