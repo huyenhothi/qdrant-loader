@@ -284,7 +284,6 @@ jobs:
 
       - name: Install dependencies
         run: |
-          source .venv/bin/activate
           python -m pip install --upgrade pip
           # Install monorepo packages locally in dependency order to avoid PyPI resolution
           pip install -e packages/qdrant-loader-core
