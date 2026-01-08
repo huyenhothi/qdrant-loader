@@ -32,12 +32,12 @@ jobs:
         id: pip-cache-core
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-core-${{ hashFiles('packages/qdrant-loader-core/pyproject.toml', 'pyproject.toml') }}
+          key: ${{ runner.os }}-py3.12.12-core-${{ hashFiles('packages/qdrant-loader-core/pyproject.toml', 'pyproject.toml') }}
           restore-keys: |
-            ${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-core-
+            ${{ runner.os }}-py3.12.12-core-
 
       - name: Debug cache key
-        run: echo "${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-core-${{ hashFiles('packages/qdrant-loader-core/pyproject.toml', 'pyproject.toml') }}"
+        run: echo "${{ runner.os }}-py3.12.12-core-${{ hashFiles('packages/qdrant-loader-core/pyproject.toml', 'pyproject.toml') }}"
 
       - name: Install dependencies
         run: |
@@ -52,7 +52,7 @@ jobs:
         if: steps.pip-cache-core.outputs.cache-hit != 'true'
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-core-${{ hashFiles('packages/qdrant-loader-core/pyproject.toml', 'pyproject.toml') }}
+          key: ${{ runner.os }}-py3.12.12-core-${{ hashFiles('packages/qdrant-loader-core/pyproject.toml', 'pyproject.toml') }}
 
       - name: Run core tests and generate coverage reports
         run: |
@@ -100,9 +100,9 @@ jobs:
         id: pip-cache-loader
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-loader-${{ hashFiles('packages/qdrant-loader-core/pyproject.toml', 'packages/qdrant-loader/pyproject.toml', 'pyproject.toml') }}
+          key: ${{ runner.os }}-py3.12.12-loader-${{ hashFiles('packages/qdrant-loader-core/pyproject.toml', 'packages/qdrant-loader/pyproject.toml', 'pyproject.toml') }}
           restore-keys: |
-            ${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-loader-
+            ${{ runner.os }}-py3.12.12-loader-
 
       - name: Install dependencies
         run: |
@@ -117,7 +117,7 @@ jobs:
         if: steps.pip-cache-loader.outputs.cache-hit != 'true'
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-loader-${{ hashFiles('packages/qdrant-loader-core/pyproject.toml', 'packages/qdrant-loader/pyproject.toml', 'pyproject.toml') }}
+          key: ${{ runner.os }}-py3.12.12-loader-${{ hashFiles('packages/qdrant-loader-core/pyproject.toml', 'packages/qdrant-loader/pyproject.toml', 'pyproject.toml') }}
 
       - name: Create .env.test file for loader
         run: |
@@ -281,9 +281,9 @@ jobs:
         id: pip-cache-mcp
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-mcp-${{ hashFiles('packages/qdrant-loader-core/pyproject.toml', 'packages/qdrant-loader/pyproject.toml', 'packages/qdrant-loader-mcp-server/pyproject.toml', 'pyproject.toml') }}
+          key: ${{ runner.os }}-py3.12.12-mcp-${{ hashFiles('packages/qdrant-loader-core/pyproject.toml', 'packages/qdrant-loader/pyproject.toml', 'packages/qdrant-loader-mcp-server/pyproject.toml', 'pyproject.toml') }}
           restore-keys: |
-            ${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-mcp-
+            ${{ runner.os }}-py3.12.12-mcp-
 
       - name: Install dependencies
         run: |
@@ -299,7 +299,7 @@ jobs:
         if: steps.pip-cache-mcp.outputs.cache-hit != 'true'
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-mcp-${{ hashFiles('packages/qdrant-loader-core/pyproject.toml', 'packages/qdrant-loader/pyproject.toml', 'packages/qdrant-loader-mcp-server/pyproject.toml', 'pyproject.toml') }}
+          key: ${{ runner.os }}-py3.12.12-mcp-${{ hashFiles('packages/qdrant-loader-core/pyproject.toml', 'packages/qdrant-loader/pyproject.toml', 'packages/qdrant-loader-mcp-server/pyproject.toml', 'pyproject.toml') }}
 
       - name: Create .env.test file for MCP server
         run: |
@@ -390,9 +390,9 @@ jobs:
         id: pip-cache-website
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-website-${{ hashFiles('pyproject.toml') }}
+          key: ${{ runner.os }}-py3.12.12-website-${{ hashFiles('pyproject.toml') }}
           restore-keys: |
-            ${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-website-
+            ${{ runner.os }}-py3.12.12-website-
 
       - name: Install website test dependencies
         run: |
@@ -407,7 +407,7 @@ jobs:
         if: steps.pip-cache-website.outputs.cache-hit != 'true'
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-website-${{ hashFiles('pyproject.toml') }}
+          key: ${{ runner.os }}-py3.12.12-website-${{ hashFiles('pyproject.toml') }}
 
       - name: Run website tests with coverage
         run: |
