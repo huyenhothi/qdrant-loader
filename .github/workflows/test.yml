@@ -32,12 +32,12 @@ jobs:
         id: pip-cache-core
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-py3.12.12-core-${{ hashFiles('packages/qdrant-loader-core/pyproject.toml', 'pyproject.toml') }}
+          key: ${{ runner.os }}-py312-core-${{ hashFiles('packages/qdrant-loader-core/pyproject.toml', 'pyproject.toml') }}
           restore-keys: |
-            ${{ runner.os }}-py3.12.12-core-
+            ${{ runner.os }}-py312-core-
 
       - name: Debug cache key
-        run: echo "${{ runner.os }}-py3.12.12-core-${{ hashFiles('packages/qdrant-loader-core/pyproject.toml', 'pyproject.toml') }}"
+        run: echo "${{ runner.os }}-py312-core-${{ hashFiles('packages/qdrant-loader-core/pyproject.toml', 'pyproject.toml') }}"
 
       - name: Install dependencies
         run: |
@@ -52,7 +52,7 @@ jobs:
         if: steps.pip-cache-core.outputs.cache-hit != 'true'
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-py3.12.12-core-${{ hashFiles('packages/qdrant-loader-core/pyproject.toml', 'pyproject.toml') }}
+          key: ${{ runner.os }}-py312-core-${{ hashFiles('packages/qdrant-loader-core/pyproject.toml', 'pyproject.toml') }}
 
       - name: Run core tests and generate coverage reports
         run: |
