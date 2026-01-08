@@ -36,9 +36,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-py312-core-
 
-      - name: Debug cache key
-        run: echo "${{ runner.os }}-py312-core-${{ hashFiles('packages/qdrant-loader-core/pyproject.toml', 'pyproject.toml') }}"
-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
