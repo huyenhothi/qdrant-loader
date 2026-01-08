@@ -36,6 +36,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-core-
 
+      - name: Debug cache key
+        run: echo "${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-core-${{ hashFiles('packages/qdrant-loader-core/pyproject.toml', 'pyproject.toml') }}"
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
