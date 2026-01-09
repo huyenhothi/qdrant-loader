@@ -116,49 +116,6 @@ jobs:
           path: ~/.cache/pip
           key: ${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-loader-${{ hashFiles('packages/qdrant-loader-core/pyproject.toml', 'packages/qdrant-loader/pyproject.toml', 'pyproject.toml') }}
 
-      - name: Create .env.test file for loader
-        run: |
-          cd packages/qdrant-loader
-          cp tests/.env.test.template tests/.env.test
-          
-          # Check if required secrets are set
-          if [ -z "${{ secrets.QDRANT_URL }}" ]; then
-            echo "Error: QDRANT_URL secret is not set"
-            exit 1
-          fi
-          if [ -z "${{ secrets.QDRANT_API_KEY }}" ]; then
-            echo "Error: QDRANT_API_KEY secret is not set"
-            exit 1
-          fi
-          if [ -z "${{ secrets.QDRANT_COLLECTION_NAME }}" ]; then
-            echo "Error: QDRANT_COLLECTION_NAME secret is not set"
-            exit 1
-          fi
-          
-          # Replace environment variables with proper escaping
-          sed -i "s|QDRANT_URL=.*|QDRANT_URL=${{ secrets.QDRANT_URL }}|g" tests/.env.test
-          sed -i "s|QDRANT_API_KEY=.*|QDRANT_API_KEY=${{ secrets.QDRANT_API_KEY }}|g" tests/.env.test
-          sed -i "s|QDRANT_COLLECTION_NAME=.*|QDRANT_COLLECTION_NAME=${{ secrets.QDRANT_COLLECTION_NAME }}|g" tests/.env.test
-          sed -i "s|STATE_DB_PATH=.*|STATE_DB_PATH=:memory:|g" tests/.env.test
-          
-          echo "Created .env.test file successfully"
-          echo "Contents (with secrets masked):"
-          sed 's/=.*/=***/' tests/.env.test
-
-      - name: Create config.test.yaml file for loader
-        run: |
-          cd packages/qdrant-loader
-          cp tests/config.test.template.yaml tests/config.test.yaml
-          
-          # Replace environment variables in YAML config
-          sed -i "s|\${QDRANT_URL}|${{ secrets.QDRANT_URL }}|g" tests/config.test.yaml
-          sed -i "s|\${QDRANT_API_KEY}|${{ secrets.QDRANT_API_KEY }}|g" tests/config.test.yaml
-          sed -i "s|\${QDRANT_COLLECTION_NAME}|${{ secrets.QDRANT_COLLECTION_NAME }}|g" tests/config.test.yaml
-          
-          echo "Created config.test.yaml file successfully"
-          echo "YAML config structure:"
-          head -20 tests/config.test.yaml
-
       - name: Run loader unit tests
         run: |
           cd packages/qdrant-loader
@@ -229,38 +186,33 @@ jobs:
           path: ~/.cache/pip
           key: ${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-mcp-${{ hashFiles('packages/qdrant-loader-core/pyproject.toml', 'packages/qdrant-loader/pyproject.toml', 'packages/qdrant-loader-mcp-server/pyproject.toml', 'pyproject.toml') }}
 
-      # - name: Create .env.test file for MCP server
-      #   run: |
-      #     cd packages/qdrant-loader-mcp-server
-      #     cp tests/.env.test.template tests/.env.test
+      - name: Create .env.test file for MCP server
+        run: |
+          cd packages/qdrant-loader-mcp-server
+          cp tests/.env.test.template tests/.env.test
           
-      #     # Check if required secrets are set
-      #     if [ -z "${{ secrets.QDRANT_URL }}" ]; then
-      #       echo "Error: QDRANT_URL secret is not set"
-      #       exit 1
-      #     fi
-      #     if [ -z "${{ secrets.QDRANT_API_KEY }}" ]; then
-      #       echo "Error: QDRANT_API_KEY secret is not set"
-      #       exit 1
-      #     fi
-      #     if [ -z "${{ secrets.QDRANT_COLLECTION_NAME }}" ]; then
-      #       echo "Error: QDRANT_COLLECTION_NAME secret is not set"
-      #       exit 1
-      #     fi
-      #     if [ -z "${{ secrets.OPENAI_API_KEY }}" ]; then
-      #       echo "Error: OPENAI_API_KEY secret is not set"
-      #       exit 1
-      #     fi
+          # Check if required secrets are set
+          if [ -z "${{ secrets.QDRANT_URL }}" ]; then
+            echo "Error: QDRANT_URL secret is not set"
+            exit 1
+          fi
+          if [ -z "${{ secrets.QDRANT_API_KEY }}" ]; then
+            echo "Error: QDRANT_API_KEY secret is not set"
+            exit 1
+          fi
+          if [ -z "${{ secrets.QDRANT_COLLECTION_NAME }}" ]; then
+            echo "Error: QDRANT_COLLECTION_NAME secret is not set"
+            exit 1
+          fi
           
-      #     # Replace environment variables with secrets for integration tests
-      #     sed -i "s|QDRANT_URL=.*|QDRANT_URL=${{ secrets.QDRANT_URL }}|g" tests/.env.test
-      #     sed -i "s|QDRANT_API_KEY=.*|QDRANT_API_KEY=${{ secrets.QDRANT_API_KEY }}|g" tests/.env.test
-      #     sed -i "s|QDRANT_COLLECTION_NAME=.*|QDRANT_COLLECTION_NAME=${{ secrets.QDRANT_COLLECTION_NAME }}|g" tests/.env.test
-      #     sed -i "s|OPENAI_API_KEY=.*|OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}|g" tests/.env.test
+          # Replace environment variables with secrets for integration tests
+          sed -i "s|QDRANT_URL=.*|QDRANT_URL=${{ secrets.QDRANT_URL }}|g" tests/.env.test
+          sed -i "s|QDRANT_API_KEY=.*|QDRANT_API_KEY=${{ secrets.QDRANT_API_KEY }}|g" tests/.env.test
+          sed -i "s|QDRANT_COLLECTION_NAME=.*|QDRANT_COLLECTION_NAME=${{ secrets.QDRANT_COLLECTION_NAME }}|g" tests/.env.test
           
-      #     echo "Created .env.test file for MCP server successfully"
-      #     echo "Contents (with secrets masked):"
-      #     sed 's/=.*/=***/' tests/.env.test
+          echo "Created .env.test file for MCP server successfully"
+          echo "Contents (with secrets masked):"
+          sed 's/=.*/=***/' tests/.env.test
 
       - name: Run MCP server unit tests
         run: |
