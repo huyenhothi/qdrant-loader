@@ -400,8 +400,8 @@ jobs:
           pip install -e .[docs] || echo "Optional docs dependencies not available"
 
       - name: Save pip dependency cache
-        uses: actions/cache/save@v4 && github.ref == 'refs/heads/main'
-        if: steps.pip-cache-website.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        if: steps.pip-cache-website.outputs.cache-hit != 'true' && github.ref == 'refs/heads/main'
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-website-${{ hashFiles('pyproject.toml') }}
