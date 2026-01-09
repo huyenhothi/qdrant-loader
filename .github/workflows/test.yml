@@ -329,8 +329,30 @@ jobs:
       - name: Create test status artifact
         run: |
           mkdir -p test-results
-          echo "{\n            \"core_status\": \"${{ needs.test-core.result }}\",\n            \"loader_status\": \"${{ needs.test-loader.result }}\",\n            \"mcp_status\": \"${{ needs.test-mcp-server.result }}\",\n            \"website_status\": \"${{ needs.test-website.result }}\",\n            \"overall_status\": \"${{ (needs.test-core.result == 'success' && needs.test-loader.result == 'success' && needs.test-mcp-server.result == 'success' && needs.test-website.result == 'success') && 'success' || 'failure' }}\",\n            \"run_id\": \"${{ github.run_id }}\",\n            \"commit_sha\": \"${{ github.sha }}\",\n            \"branch\": \"${{ github.ref_name }}\",\n            \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"\n          }" > test-results/status.json
+          # echo "{\n            \"core_status\": \"${{ needs.test-core.result }}\",\n            \"loader_status\": \"${{ needs.test-loader.result }}\",\n            \"mcp_status\": \"${{ needs.test-mcp-server.result }}\",\n            \"website_status\": \"${{ needs.test-website.result }}\",\n            \"overall_status\": \"${{ (needs.test-core.result == 'success' && needs.test-loader.result == 'success' && needs.test-mcp-server.result == 'success' && needs.test-website.result == 'success') && 'success' || 'failure' }}\",\n            \"run_id\": \"${{ github.run_id }}\",\n            \"commit_sha\": \"${{ github.sha }}\",\n            \"branch\": \"${{ github.ref_name }}\",\n            \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"\n          }" > test-results/status.json
           
+          jq -n \
+             --arg core "${{ needs.test-core.result }}" \
+             --arg loader "${{ needs.test-loader.result }}" \
+             --arg mcp "${{ needs.test-mcp-server.result }}" \
+             --arg website "${{ needs.test-website.result }}" \
+             --arg overall "${{ (needs.test-core.result == 'success' && needs.test-loader.result == 'success' && needs.test-mcp-server.result == 'success' && needs.test-website.result == 'success') && 'success' || 'failure' }}" \
+             --arg run_id "${{ github.run_id }}" \
+             --arg sha "${{ github.sha }}" \
+             --arg branch "${{ github.ref_name }}" \
+             --arg timestamp "$(date -u  %Y-%m-%dT%H:%M:%SZ)" \
+             '{
+               core_status: $core,
+               loader_status: $loader,
+               mcp_status: $mcp,
+               website_status: $website,
+               overall_status: $overall,
+               run_id: $run_id,
+               commit_sha: $sha,
+               branch: $branch,
+               timestamp: $timestamp
+             }' > test-results/status.json
+
           echo "Test run completed at $(date)" > test-results/summary.txt
           echo "Run ID: ${{ github.run_id }}" >> test-results/summary.txt
           echo "Commit: ${{ github.sha }}" >> test-results/summary.txt
