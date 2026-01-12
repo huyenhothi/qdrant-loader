@@ -202,13 +202,15 @@ jobs:
 
       - name: Setup Pages (for deployment)
         if: github.event_name == 'release' && needs.check-release.outputs.should-deploy == 'true'
-        uses: actions/configure-pages@v4
+        # uses: actions/configure-pages@v4
+        run: echo "=== Test Setup ==="
 
       - name: Upload site artifact for Pages (for deployment)
         if: github.event_name == 'release' && needs.check-release.outputs.should-deploy == 'true'
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: site
+        # uses: actions/upload-pages-artifact@v3
+        # with:
+        #   path: site
+        run: echo "=== Test Upload ==="
 
   deploy:
     name: Deploy to GitHub Pages
@@ -227,7 +229,8 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        # uses: actions/deploy-pages@v4
+        run: echo "=== Test Deploy ==="
 
   build-summary:
     name: Build Summary

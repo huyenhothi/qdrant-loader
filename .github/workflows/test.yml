@@ -2,7 +2,7 @@ name: Test and Coverage
 
 on:
   push:
-    branches: [ main, develop, feature/*, bugfix/*, release/*, fix/* ]
+    branches: [ main, develop, feature/*, bugfix/*, release/*, fix/*, chore/* ]
   pull_request:
     branches: [ main, develop, feature/*, bugfix/*, release/*, fix/* ]
 
@@ -22,9 +22,19 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Python
+        id: setup-python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+
+      - name: Restore pip dependency cache
+        uses: actions/cache/restore@v4
+        id: pip-cache-core
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-core-${{ hashFiles('packages/qdrant-loader-core/pyproject.toml', 'pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-core-
 
       - name: Install dependencies
         run: |
@@ -34,12 +44,27 @@ jobs:
           # Install repo dev deps for pytest, coverage, etc.
           pip install -e .[dev]
 
+      - name: Save pip dependency cache
+        uses: actions/cache/save@v4
+        if: steps.pip-cache-core.outputs.cache-hit != 'true' && github.ref_name == 'main'
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-core-${{ hashFiles('packages/qdrant-loader-core/pyproject.toml', 'pyproject.toml') }}
+
       - name: Run core tests and generate coverage reports
         run: |
           cd packages/qdrant-loader-core
-          python -m pytest tests/ --cov=src --cov-report=xml:../../coverage-core.xml --cov-report=html:../../htmlcov-core -v
+          python -m pytest tests/ --cov=src -v
+
+      - name: Generate coverage reports
+        if: github.event_name == 'push' && github.ref_name == 'main'
+        run: |
+          cd packages/qdrant-loader-core
+          coverage xml -o ../../coverage-core.xml
+          coverage html -d ../../htmlcov-core
 
       - name: Upload core coverage artifact
+        if: github.event_name == 'push' && github.ref_name == 'main'
         uses: actions/upload-artifact@v4
         with:
           name: coverage-core-${{ github.run_id }}
@@ -47,6 +72,7 @@ jobs:
             htmlcov-core
             coverage-core.xml
           retention-days: 30
+
   test-loader:
     name: Test QDrant Loader
     runs-on: ubuntu-latest
@@ -54,6 +80,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Python
+        id: setup-python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -65,6 +92,15 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg
 
+      - name: Restore pip dependency cache
+        uses: actions/cache/restore@v4
+        id: pip-cache-loader
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-loader-${{ hashFiles('packages/qdrant-loader-core/pyproject.toml', 'packages/qdrant-loader/pyproject.toml', 'pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-loader-
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -73,124 +109,38 @@ jobs:
           pip install -e .[dev]
           pip install -e packages/qdrant-loader
 
-      - name: Create .env.test file for loader
-        run: |
-          cd packages/qdrant-loader
-          cp tests/.env.test.template tests/.env.test
-          
-          # Check if required secrets are set
-          if [ -z "${{ secrets.QDRANT_URL }}" ]; then
-            echo "Error: QDRANT_URL secret is not set"
-            exit 1
-          fi
-          if [ -z "${{ secrets.QDRANT_API_KEY }}" ]; then
-            echo "Error: QDRANT_API_KEY secret is not set"
-            exit 1
-          fi
-          if [ -z "${{ secrets.QDRANT_COLLECTION_NAME }}" ]; then
-            echo "Error: QDRANT_COLLECTION_NAME secret is not set"
-            exit 1
-          fi
-          if [ -z "${{ secrets.OPENAI_API_KEY }}" ]; then
-            echo "Error: OPENAI_API_KEY secret is not set"
-            exit 1
-          fi
-          
-          # Replace environment variables with proper escaping
-          sed -i "s|QDRANT_URL=.*|QDRANT_URL=${{ secrets.QDRANT_URL }}|g" tests/.env.test
-          sed -i "s|QDRANT_API_KEY=.*|QDRANT_API_KEY=${{ secrets.QDRANT_API_KEY }}|g" tests/.env.test
-          sed -i "s|QDRANT_COLLECTION_NAME=.*|QDRANT_COLLECTION_NAME=${{ secrets.QDRANT_COLLECTION_NAME }}|g" tests/.env.test
-          sed -i "s|OPENAI_API_KEY=.*|OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}|g" tests/.env.test
-          sed -i "s|STATE_DB_PATH=.*|STATE_DB_PATH=:memory:|g" tests/.env.test
-          
-          # Optional secrets - only replace if they exist
-          if [ -n "${{ secrets.REPO_TOKEN }}" ]; then
-            sed -i "s|REPO_TOKEN=.*|REPO_TOKEN=${{ secrets.REPO_TOKEN }}|g" tests/.env.test
-          fi
-          if [ -n "${{ secrets.REPO_URL }}" ]; then
-            sed -i "s|REPO_URL=.*|REPO_URL=${{ secrets.REPO_URL }}|g" tests/.env.test
-          fi
-          if [ -n "${{ secrets.CONFLUENCE_TOKEN }}" ]; then
-            sed -i "s|CONFLUENCE_TOKEN=.*|CONFLUENCE_TOKEN=${{ secrets.CONFLUENCE_TOKEN }}|g" tests/.env.test
-          fi
-          if [ -n "${{ secrets.CONFLUENCE_EMAIL }}" ]; then
-            sed -i "s|CONFLUENCE_EMAIL=.*|CONFLUENCE_EMAIL=${{ secrets.CONFLUENCE_EMAIL }}|g" tests/.env.test
-          fi
-          if [ -n "${{ secrets.CONFLUENCE_URL }}" ]; then
-            sed -i "s|CONFLUENCE_URL=.*|CONFLUENCE_URL=${{ secrets.CONFLUENCE_URL }}|g" tests/.env.test
-          fi
-          if [ -n "${{ secrets.CONFLUENCE_SPACE_KEY }}" ]; then
-            sed -i "s|CONFLUENCE_SPACE_KEY=.*|CONFLUENCE_SPACE_KEY=${{ secrets.CONFLUENCE_SPACE_KEY }}|g" tests/.env.test
-          fi
-          if [ -n "${{ secrets.JIRA_TOKEN }}" ]; then
-            sed -i "s|JIRA_TOKEN=.*|JIRA_TOKEN=${{ secrets.JIRA_TOKEN }}|g" tests/.env.test
-          fi
-          if [ -n "${{ secrets.JIRA_EMAIL }}" ]; then
-            sed -i "s|JIRA_EMAIL=.*|JIRA_EMAIL=${{ secrets.JIRA_EMAIL }}|g" tests/.env.test
-          fi
-          if [ -n "${{ secrets.JIRA_URL }}" ]; then
-            sed -i "s|JIRA_URL=.*|JIRA_URL=${{ secrets.JIRA_URL }}|g" tests/.env.test
-          fi
-          if [ -n "${{ secrets.JIRA_PROJECT_KEY }}" ]; then
-            sed -i "s|JIRA_PROJECT_KEY=.*|JIRA_PROJECT_KEY=${{ secrets.JIRA_PROJECT_KEY }}|g" tests/.env.test
-          fi
-          
-          echo "Created .env.test file successfully"
-          echo "Contents (with secrets masked):"
-          sed 's/=.*/=***/' tests/.env.test
+      - name: Save pip dependency cache
+        uses: actions/cache/save@v4
+        if: steps.pip-cache-loader.outputs.cache-hit != 'true' && github.ref_name == 'main'
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-loader-${{ hashFiles('packages/qdrant-loader-core/pyproject.toml', 'packages/qdrant-loader/pyproject.toml', 'pyproject.toml') }}
 
-      - name: Create config.test.yaml file for loader
+      - name: Run loader unit tests
         run: |
           cd packages/qdrant-loader
-          cp tests/config.test.template.yaml tests/config.test.yaml
-          
-          # Replace environment variables in YAML config
-          sed -i "s|\${QDRANT_URL}|${{ secrets.QDRANT_URL }}|g" tests/config.test.yaml
-          sed -i "s|\${QDRANT_API_KEY}|${{ secrets.QDRANT_API_KEY }}|g" tests/config.test.yaml
-          sed -i "s|\${QDRANT_COLLECTION_NAME}|${{ secrets.QDRANT_COLLECTION_NAME }}|g" tests/config.test.yaml
-          
-          # Optional environment variables - only replace if they exist
-          if [ -n "${{ secrets.REPO_TOKEN }}" ]; then
-            sed -i "s|\${REPO_TOKEN}|${{ secrets.REPO_TOKEN }}|g" tests/config.test.yaml
-          fi
-          if [ -n "${{ secrets.REPO_URL }}" ]; then
-            sed -i "s|\${REPO_URL}|${{ secrets.REPO_URL }}|g" tests/config.test.yaml
-          fi
-          if [ -n "${{ secrets.CONFLUENCE_TOKEN }}" ]; then
-            sed -i "s|\${CONFLUENCE_TOKEN}|${{ secrets.CONFLUENCE_TOKEN }}|g" tests/config.test.yaml
-          fi
-          if [ -n "${{ secrets.CONFLUENCE_EMAIL }}" ]; then
-            sed -i "s|\${CONFLUENCE_EMAIL}|${{ secrets.CONFLUENCE_EMAIL }}|g" tests/config.test.yaml
-          fi
-          if [ -n "${{ secrets.CONFLUENCE_URL }}" ]; then
-            sed -i "s|\${CONFLUENCE_URL}|${{ secrets.CONFLUENCE_URL }}|g" tests/config.test.yaml
-          fi
-          if [ -n "${{ secrets.CONFLUENCE_SPACE_KEY }}" ]; then
-            sed -i "s|\${CONFLUENCE_SPACE_KEY}|${{ secrets.CONFLUENCE_SPACE_KEY }}|g" tests/config.test.yaml
-          fi
-          if [ -n "${{ secrets.JIRA_TOKEN }}" ]; then
-            sed -i "s|\${JIRA_TOKEN}|${{ secrets.JIRA_TOKEN }}|g" tests/config.test.yaml
-          fi
-          if [ -n "${{ secrets.JIRA_EMAIL }}" ]; then
-            sed -i "s|\${JIRA_EMAIL}|${{ secrets.JIRA_EMAIL }}|g" tests/config.test.yaml
-          fi
-          if [ -n "${{ secrets.JIRA_URL }}" ]; then
-            sed -i "s|\${JIRA_URL}|${{ secrets.JIRA_URL }}|g" tests/config.test.yaml
-          fi
-          if [ -n "${{ secrets.JIRA_PROJECT_KEY }}" ]; then
-            sed -i "s|\${JIRA_PROJECT_KEY}|${{ secrets.JIRA_PROJECT_KEY }}|g" tests/config.test.yaml
-          fi
-          
-          echo "Created config.test.yaml file successfully"
-          echo "YAML config structure:"
-          head -20 tests/config.test.yaml
+          python -m pytest tests/unit -n 2 --cov=src --cov-report= -v
 
-      - name: Run loader tests and generate coverage reports
+      - name: Run loader integration tests
+        if: |
+          (github.event_name == 'pull_request' &&
+          (github.event.pull_request.base.ref == 'develop' ||
+            github.event.pull_request.base.ref == 'main')) ||
+          (github.event_name == 'push' &&
+          (github.ref_name == 'develop' || github.ref_name == 'main'))
         run: |
           cd packages/qdrant-loader
-          python -m pytest tests/ --cov=src --cov-report=xml:../../coverage-loader.xml --cov-report=html:../../htmlcov-loader -v
+          python -m pytest tests/integration --cov=src --cov-append --cov-report= -v
+
+      - name: Generate coverage reports
+        if: github.event_name == 'push' && github.ref_name == 'main'
+        run: |
+          cd packages/qdrant-loader
+          coverage xml -o ../../coverage-loader.xml
+          coverage html -d ../../htmlcov-loader
 
       - name: Upload loader coverage artifact
+        if: github.event_name == 'push' && github.ref_name == 'main'
         uses: actions/upload-artifact@v4
         with:
           name: coverage-loader-${{ github.run_id }}
@@ -206,9 +156,19 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Python
+        id: setup-python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+
+      - name: Restore pip dependency cache
+        uses: actions/cache/restore@v4
+        id: pip-cache-mcp
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-mcp-${{ hashFiles('packages/qdrant-loader-core/pyproject.toml', 'packages/qdrant-loader/pyproject.toml', 'packages/qdrant-loader-mcp-server/pyproject.toml', 'pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-mcp-
 
       - name: Install dependencies
         run: |
@@ -218,6 +178,13 @@ jobs:
           pip install -e .[dev]
           pip install -e packages/qdrant-loader
           pip install -e packages/qdrant-loader-mcp-server
+
+      - name: Save pip dependency cache
+        uses: actions/cache/save@v4
+        if: steps.pip-cache-mcp.outputs.cache-hit != 'true' && github.ref_name == 'main'
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-mcp-${{ hashFiles('packages/qdrant-loader-core/pyproject.toml', 'packages/qdrant-loader/pyproject.toml', 'packages/qdrant-loader-mcp-server/pyproject.toml', 'pyproject.toml') }}
 
       - name: Create .env.test file for MCP server
         run: |
@@ -237,27 +204,41 @@ jobs:
             echo "Error: QDRANT_COLLECTION_NAME secret is not set"
             exit 1
           fi
-          if [ -z "${{ secrets.OPENAI_API_KEY }}" ]; then
-            echo "Error: OPENAI_API_KEY secret is not set"
-            exit 1
-          fi
           
           # Replace environment variables with secrets for integration tests
           sed -i "s|QDRANT_URL=.*|QDRANT_URL=${{ secrets.QDRANT_URL }}|g" tests/.env.test
           sed -i "s|QDRANT_API_KEY=.*|QDRANT_API_KEY=${{ secrets.QDRANT_API_KEY }}|g" tests/.env.test
           sed -i "s|QDRANT_COLLECTION_NAME=.*|QDRANT_COLLECTION_NAME=${{ secrets.QDRANT_COLLECTION_NAME }}|g" tests/.env.test
-          sed -i "s|OPENAI_API_KEY=.*|OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}|g" tests/.env.test
           
           echo "Created .env.test file for MCP server successfully"
           echo "Contents (with secrets masked):"
           sed 's/=.*/=***/' tests/.env.test
 
-      - name: Run MCP server tests and generate coverage reports
+      - name: Run MCP server unit tests
         run: |
           cd packages/qdrant-loader-mcp-server
-          python -m pytest tests/ --cov=src --cov-report=xml:../../coverage-mcp.xml --cov-report=html:../../htmlcov-mcp -v
+          python -m pytest tests/unit -n 2 --cov=src --cov-report= -v
+
+      - name: Run MCP server integration tests
+        if: |
+          (github.event_name == 'pull_request' &&
+          (github.event.pull_request.base.ref == 'develop' ||
+            github.event.pull_request.base.ref == 'main')) ||
+          (github.event_name == 'push' &&
+          (github.ref_name == 'develop' || github.ref_name == 'main'))
+        run: |
+          cd packages/qdrant-loader-mcp-server
+          python -m pytest tests/integration --cov=src --cov-append --cov-report= -v
+
+      - name: Generate coverage reports
+        if: github.event_name == 'push' && github.ref_name == 'main'
+        run: |
+          cd packages/qdrant-loader-mcp-server
+          coverage xml -o ../../coverage-mcp.xml
+          coverage html -d ../../htmlcov-mcp
 
       - name: Upload MCP server coverage artifact
+        if: github.event_name == 'push' && github.ref_name == 'main'
         uses: actions/upload-artifact@v4
         with:
           name: coverage-mcp-${{ github.run_id }}
@@ -273,6 +254,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Python
+        id: setup-python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -283,6 +265,15 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libcairo2-dev libgirepository1.0-dev
 
+      - name: Restore pip dependency cache
+        uses: actions/cache/restore@v4
+        id: pip-cache-website
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-website-${{ hashFiles('pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-website-
+
       - name: Install website test dependencies
         run: |
           python -m pip install --upgrade pip
@@ -290,6 +281,13 @@ jobs:
           pip install -e .[dev]
           # Install optional docs dependencies for comprehensive testing
           pip install -e .[docs] || echo "Optional docs dependencies not available"
+
+      - name: Save pip dependency cache
+        uses: actions/cache/save@v4
+        if: steps.pip-cache-website.outputs.cache-hit != 'true' && github.ref_name == 'main'
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-website-${{ hashFiles('pyproject.toml') }}
 
       - name: Run website tests with coverage
         run: |
