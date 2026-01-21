@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import gc
 import signal
 from pathlib import Path
 
@@ -13,6 +14,7 @@ from qdrant_loader.cli.config_loader import (
 )
 from qdrant_loader.config.workspace import validate_workspace_flags
 from qdrant_loader.utils.logging import LoggingConfig
+import spacy
 
 from . import run_pipeline_ingestion
 
@@ -191,3 +193,8 @@ async def run_ingest_command(
             exc_info=True,
         )
         raise ClickException(f"Failed to run ingestion: {error_msg}") from e
+    ani_a = sum(
+        1 for obj in gc.get_objects()
+        if isinstance(obj, spacy.language.Language)
+    )
+    logger.warning(f"LIVE spaCy models after job: {ani_a}")

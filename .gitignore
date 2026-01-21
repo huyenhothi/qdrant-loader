@@ -95,3 +95,5 @@ data/.taskmaster/
 /.taskmaster/
 website/site/
 internal/
+
+docker-compose.yml

@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import gc
 from typing import Any
 
 from qdrant_loader.utils.logging import LoggingConfig
+import spacy
 
 
 async def run_pipeline_ingestion(
@@ -24,6 +26,11 @@ async def run_pipeline_ingestion(
     )
     logger = LoggingConfig.get_logger(__name__)
     ingestion_error: Exception | None = None
+    ani_a = sum(
+        1 for obj in gc.get_objects()
+        if isinstance(obj, spacy.language.Language)
+    )
+    logger.warning(f"LIVE spaCy models before pipeline: {ani_a}")
     try:
         await pipeline.process_documents(
             project_id=project,

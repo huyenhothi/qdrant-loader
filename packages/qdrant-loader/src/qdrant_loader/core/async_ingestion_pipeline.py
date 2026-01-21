@@ -1,5 +1,6 @@
 """Refactored async ingestion pipeline using the new modular architecture."""
 
+import gc
 from pathlib import Path
 
 from qdrant_loader.config import Settings, SourcesConfig
@@ -10,6 +11,7 @@ from qdrant_loader.core.project_manager import ProjectManager
 from qdrant_loader.core.qdrant_manager import QdrantManager
 from qdrant_loader.core.state.state_manager import StateManager
 from qdrant_loader.utils.logging import LoggingConfig
+import spacy
 
 from .pipeline import (
     PipelineComponentsFactory,
@@ -229,6 +231,11 @@ class AsyncIngestionPipeline:
                 project_id=project_id,
                 force=force,
             )
+            ani_a = sum(
+                1 for obj in gc.get_objects()
+                if isinstance(obj, spacy.language.Language)
+            )
+            logger.warning(f"LIVE spaCy models in pipeline: {ani_a}")
 
             # Update metrics
             if documents:
