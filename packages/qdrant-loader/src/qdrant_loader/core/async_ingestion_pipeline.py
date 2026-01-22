@@ -221,6 +221,7 @@ class AsyncIngestionPipeline:
         try:
             logger.debug("Starting document processing with new pipeline architecture")
 
+            print("Trong process")
             # Use the orchestrator to process documents with project support
             documents = await self.orchestrator.process_documents(
                 sources_config=sources_config,
