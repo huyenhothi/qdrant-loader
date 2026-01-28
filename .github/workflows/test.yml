@@ -74,6 +74,7 @@ jobs:
           retention-days: 30
 
   test-loader:
+    # test for running
     name: Test QDrant Loader
     runs-on: ubuntu-latest
     steps:
