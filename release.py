@@ -270,14 +270,14 @@ def get_github_token(dry_run: bool = False) -> str:
 def extract_repo_info(git_url: str, dry_run: bool = False) -> str:
     """
     Extract the GitHub repository path "owner/repo" from a git remote URL.
-    
+
     Parameters:
         git_url (str): Git remote URL in one of the supported formats (HTTPS, ssh://, or git@).
         dry_run (bool): If True, return "unknown/repo" on parse failure instead of exiting.
-    
+
     Returns:
         repo_path (str): The repository path in the form "username/repo".
-    
+
     Raises:
         SystemExit: Exits with status 1 when the URL cannot be parsed and `dry_run` is False.
     """
@@ -419,13 +419,13 @@ def create_github_release(
 def check_main_up_to_date(dry_run: bool = False) -> bool:
     """
     Verify that the local main branch is synchronized with origin/main.
-    
+
     Parameters:
         dry_run (bool): If True, do not exit the process on mismatch and only simulate checks.
-    
+
     Returns:
         bool: `True` if the local main branch is up to date with origin/main, `False` otherwise.
-    
+
     Notes:
         If the branch is not up to date and `dry_run` is False, the process will exit with status code 1.
     """
@@ -447,13 +447,13 @@ def check_main_up_to_date(dry_run: bool = False) -> bool:
 def check_changelog_updated(new_version: str, dry_run: bool = False) -> bool:
     """
     Verify that the repository root CHANGELOG.md contains a top-level section for the specified new version.
-    
+
     Checks for a version header matching the pattern `## [X.Y.Z]` (supports `b` beta suffix like `1.2.3b1`) and ignores an `## [Unreleased]` section; logs errors and calls `sys.exit(1)` on failure unless `dry_run` is True.
-    
+
     Parameters:
         new_version (str): The version string to look for (e.g., "1.2.3" or "1.2.3b1").
         dry_run (bool): If True, do not exit the process on failure; return False instead.
-    
+
     Returns:
         bool: `True` if a changelog section for `new_version` is found, `False` otherwise.
     """
@@ -962,9 +962,9 @@ def update_all_internal_dependencies_versions(
 def release(dry_run: bool = False, verbose: bool = False, sync_versions: bool = False):
     """
     Orchestrate a coordinated release across all packages: compute and apply a unified version, run safety checks, update pyproject metadata, commit and push changes, tag, and create GitHub releases.
-    
+
     When invoked with sync_versions=True the command only synchronizes all package versions, development-status classifiers, and internal dependency pins to the qdrant-loader package version and then exits. In normal mode it performs repository and CI checks, prompts for a version bump (major/minor/patch/beta/custom), validates CHANGELOG.md, applies the version and classifier updates, pins internal dependencies, commits and pushes changes, creates annotated tags for each releasable package, and creates GitHub releases. Use dry_run=True to simulate all steps without making any persistent changes; use verbose=True to enable more detailed logging.
-    
+
     Parameters:
         dry_run (bool): If True, simulate actions without writing files, running non-whitelisted commands, committing, pushing, or creating releases.
         verbose (bool): If True, enable verbose (debug) logging output.
@@ -1142,7 +1142,7 @@ def release(dry_run: bool = False, verbose: bool = False, sync_versions: bool = 
             return
         sys.exit(1)
 
-    # Now check if release notes have been updated for the new version
+    # Now check if changelog have been updated for the new version
     changelog_check = check_changelog_updated(new_version, dry_run)
 
     # Combine all check results
@@ -1225,7 +1225,7 @@ def release(dry_run: bool = False, verbose: bool = False, sync_versions: bool = 
 
         print("\n" + "─" * 50)
 
-        # Check all results including release notes
+        # Check all results including changelog
         all_failed_checks = []
         for check_name, passed in all_check_results.items():
             if not passed:
@@ -1246,7 +1246,7 @@ def release(dry_run: bool = False, verbose: bool = False, sync_versions: bool = 
 
         return
 
-    # In real mode, exit if any check failed (including release notes)
+    # In real mode, exit if any check failed (including changelog)
     if not all(all_check_results.values()):
         logger.error("One or more safety checks failed. Aborting release.")
         sys.exit(1)
